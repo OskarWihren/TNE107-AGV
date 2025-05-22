@@ -30,14 +30,10 @@ def dwm_read(): #funktion för att läsa position
         
     try:
         ser_dwm.flushInput()
-       
-        #print("vaknade")
-        #ser.write(b'la\r')	#Skriv vilka anchors vi har kontakt med
         
        
         
         #response=ser_dwm.readline().decode('utf-8', errors='ignore')
-        #print(response)
         response = ""
         while "POS" not in response:
             response=ser_dwm.readline().decode('utf-8', errors='ignore')
@@ -48,13 +44,9 @@ def dwm_read(): #funktion för att läsa position
                 x_pos = float(parts[1])
                 y_pos = float(parts[2])
                 pos_quality = int(parts[4])
-
-                # print(x_pos)
-                # print(y_pos)
-                # print(pos_quality)
+		    
                 result = [round(x_pos*100), round(y_pos*100), pos_quality]
                 
-                #print(result)
                 return result
 
 	
