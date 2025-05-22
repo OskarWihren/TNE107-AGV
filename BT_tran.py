@@ -4,10 +4,6 @@ import os
 import multiprocessing
 from sleep_core import sleep_core_2
 
-# import threading
-# 
-# print_lock = threading.Lock()
-
 
 def get_sensor_data():
     counter = 1
@@ -36,8 +32,6 @@ def BT_transmitter(queue):
             
             
             while True:
-                #current_time = time.strftime("%H:%M:%S:", time.localtime())
-                #print(queue.qsize())
                 if not queue.empty():
                     sensor_data = queue.get()
                     print("SKICKAR, NÅGOT===========================================================:", sensor_data)
@@ -46,11 +40,6 @@ def BT_transmitter(queue):
                 	
                 
                 sleep_core_2(0.1)
-                #print(f"Du skickade: {sensor_data}")
-                #queue.put(sensor_data.decode('utf-8'))
-                #time.sleep(10) #stod 1 här förrut
-                
-                #counter += 1
 
             
         except bluetooth.btcommon.BluetoothError as e:
