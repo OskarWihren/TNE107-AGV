@@ -109,11 +109,9 @@ def STOP_CHECK():
     stop = False
     if not q_BT_reciever.empty():
         mottaget = q_BT_reciever.get()	# [12:06:32:START:X1:Y1:X2:Y2...]
-        #print(f"Mottaget meddelande i stop check från ös: {mottaget}")
         split_mottaget = mottaget.split(":") # [12,06,32,START,X1,Y1,X2,Y2,...]
         if len(split_mottaget)>3:
             meddelande_mottaget = split_mottaget[3].strip() 
-            print(f"Det ska stå STANNA här: {meddelande_mottaget}")
             if meddelande_mottaget == "STANNA":
                 AGV_STOP()
                 stop = True
@@ -174,7 +172,6 @@ def rotate_to(target_dir):
     #pause_event.set()
     current_dir = q_IMU.get()
     diff = target_dir - current_dir
-    print(current_dir)
     with riktning.get_lock():      # Skickar vilken riktining AGV har till datormusen
         riktning.value = target_dir
     if target_dir == 0: #Om vi ska till NORR
@@ -259,7 +256,6 @@ def calc_lidar_cord(lidar_vector, AGV_kord,angle):#Lägg till en input för komp
     print("AGV HAR RIKTNING VID BERÄKNING AV LIDAR: ",angle)
     x_vector = [0]*len(lidar_vector)	#skapar en x_vector fylld med 0
     y_vector = [0]*len(lidar_vector)	#skapar en y_vector fylld med 0
-    print("LIDAR VECTOR POS 0",lidar_vector[0])
     for i in range(len(lidar_vector)):
 #============================Om lidar data är felaktig=========================
 
@@ -340,7 +336,6 @@ def fuse_position():
         _y_est = round(ALPHA * y_m + (1 - ALPHA) * y_dwm)
         mouse_offset_x += (_x_est - x_m) #om dwm vid 10 och mus vid 5, lägg på 5 på musen. offset = 10-5 = 5
         mouse_offset_y += (_y_est - y_m)
-        print("Vi är nu innanför gaten och dwmen är bra, offset är:", mouse_offset_x, mouse_offset_y)
         
         
     elif (_x_est > POS_GATE_X and _y_est > POS_GATE_Y): #Om vi är utanför gaten men dwm_en indikerar att vi har hoppat
@@ -452,7 +447,6 @@ try:
                         break
                     print(f"{ed_tid}:POSITION:{current_mouse[0]}:{current_mouse[1]}")
                     time.sleep(0.1)
-                    print(dwm_read())
                     stopp = STOP_CHECK()
                     if stopp == True:
                         break
@@ -500,7 +494,6 @@ try:
 
 
                     else:   #om vi redan står på rätt y-kord
-                        print("ELSE")
                         if current_mouse[0] < target_list[i]:
                             #rotera till öst
                             rotate_to(90)  
@@ -540,7 +533,6 @@ try:
                 if nodstopp == False:
                     #ed_tid = time.strftime("%H:%M:%S:", time.localtime())
                     #q_BT_transmitter.put((f"{ed_tid}FRAMME"))	#Svara ÖS med ACK samt meddelandet som togs emot
-                    print("FRAMME!")
                     GPIO.output(grön_led1,True)
                     calibration_angle = q_IMU.get()
                     p_IMU.terminate()
@@ -558,7 +550,7 @@ try:
                 if current_ultraljud < 20:
                     nodstopp = True
                     q_BT_transmitter.put((f"{ed_tid}FAST:{current_mouse[0]}:{current_mouse[1]}"))
-                    print("FAST!!!!!!")
+                    print("FAST")
                     break
 
                 else:
@@ -697,60 +689,47 @@ try:
                     
                     match AGV_riktning:
                         case 0:
-                            print("CASE:0")
                             besok_pos_x = target_list[-2] #x-värde av besökplats
                             besok_pos_y = target_list[-1] + 20 #y-värde
                             mouse_x = mouse_x
                             mouse_y = besok_pos_y - error_pos - 12 #Beräknar var vi står efter lyckat besök
                             current_mouse = mouse_data(AGV_riktning,True) #Rensa kön för musen (ignorera all data tills hit)
                             AGV_BAK()
-                            print("BAK")
                             while current_mouse[1] > target_list[-1]:
                                 current_mouse = mouse_data(AGV_riktning)
                             AGV_STOP()
                         case 90:
-                            print("CASE:90")
                             besok_pos_x = target_list[-2] + 20#x-värde av besökplats
                             besok_pos_y = target_list[-1] #y-värde
                             mouse_x = besok_pos_x - error_pos -12
                             mouse_y = mouse_y #Beräknar var vi står efter lyckat besök
                             current_mouse = mouse_data(AGV_riktning,True) #Rensa kön för musen (ignorera all data tills hit)
                             AGV_BAK()
-                            print("BAK")
                             while current_mouse[0] > target_list[-2]:
                                 current_mouse = mouse_data(AGV_riktning)
                             AGV_STOP()
 
                         case 180:
-                            print("CASE:180")
                             besok_pos_x = target_list[-2] #x-värde av besökplats
                             besok_pos_y = target_list[-1] - 20 #y-värde
                             mouse_x = mouse_x
                             mouse_y = besok_pos_y + error_pos + 12
-                            print("POSITION FRÅN BESÖKSPLATS:", mouse_x, mouse_y)
                             #Beräknar var vi står efter lyckat besök
                             current_mouse = mouse_data(AGV_riktning,True) #Rensa kön för musen (ignorera all data tills hit)
                             print("POSITION FRÅN BESÖKSPLATS:", mouse_x, mouse_y)
                             AGV_BAK()
-                            print("BAK")
-                            print("VI STÅR PÅ: ", current_mouse)
-                            print("VI SKA TILL: ", target_list[-1])
                             
                             while current_mouse[1] < target_list[-1]:
                                 current_mouse = mouse_data(AGV_riktning)
-                                #print("BACKAR NU!!!, pos:", current_mouse)
 
                             AGV_STOP()
-                            print("VI ÄR KLARA MED BACKEN OCH STÅR PÅ:", current_mouse)
                         case 270:
-                            print("CASE:270")
                             besok_pos_x = target_list[-2] - 20#x-värde av besökplats
                             besok_pos_y = target_list[-1] #y-värde
                             mouse_x = besok_pos_x + error_pos + 12
                             mouse_y = mouse_y #Beräknar var vi står efter lyckat besök
                             current_mouse = mouse_data(AGV_riktning,True) #Rensa kön för musen (ignorera all data tills hit)
                             AGV_BAK()
-                            print("BAK")
                             while current_mouse[1] < target_list[-2]:
                                 current_mouse = mouse_data(AGV_riktning)
                             AGV_STOP()
@@ -769,18 +748,15 @@ try:
 
             
             case "POSITION":
-                print("POSITION")
                 #fuse_position()
                 current_mouse = mouse_data(AGV_riktning)
                 #ultra = get_ultraljud()
                 IMU_data = q_IMU.get()
-                #print(f"MOUSE: {data} | IMU: {IMU_data} | Avstånd fram: {ultra}")
                 print(f"MOUSE: {current_mouse[0]}:{current_mouse[1]} | IMU: {IMU_data}")
                 q_BT_transmitter.put((f"POSITION:{current_mouse[0]}:{current_mouse[1]}"))
 
             case "HINDER":
-                    #Skica endast lidar
-                    #fuse_position()
+                    #Skikca endast lidar
                     mouse_now = mouse_data(AGV_riktning)
                     current_dir = q_IMU.get()
                     print("Mouse now i HINDER:", mouse_now)
@@ -788,7 +764,6 @@ try:
                     x_current_pos, y_current_pos = mouse_now
                     ed_tid = time.strftime("%H:%M:%S:", time.localtime())
                     q_BT_transmitter.put((f"{ed_tid}HINDER:{x_hinder_pos}:{y_hinder_pos}:{x_current_pos}:{y_current_pos}"))
-                    print("Nu kör vi HINDER")
                     print(f"x hinder: {x_hinder_pos}")
                     print(f"y hinder: {y_hinder_pos}")
                 
